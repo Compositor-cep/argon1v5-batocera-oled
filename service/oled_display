@@ -1,0 +1,23 @@
+#!/bin/bash
+OLEDDIR=/userdata/system/scripts/oled
+ASSETDIR=$OLEDDIR/assets
+
+case "$1" in
+    start)
+        # Don't launch a second copy if already running (e.g. install.sh re-run)
+        if [ -f /var/run/oled_display.pid ] && kill -0 "$(cat /var/run/oled_display.pid)" 2>/dev/null; then
+            exit 0
+        fi
+        mkdir -p /etc/argon/oled
+        cp $ASSETDIR/*.bin /etc/argon/oled/ 2>/dev/null
+        export PYTHONPATH=$OLEDDIR
+        python3 $OLEDDIR/oled_loop.py >> /userdata/system/logs/oled.log 2>&1 &
+        echo $! > /var/run/oled_display.pid
+        ;;
+    stop)
+        if [ -f /var/run/oled_display.pid ]; then
+            kill $(cat /var/run/oled_display.pid) 2>/dev/null
+            rm -f /var/run/oled_display.pid
+        fi
+        ;;
+esac
