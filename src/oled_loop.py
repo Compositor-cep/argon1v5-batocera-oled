@@ -1,8 +1,19 @@
 #!/usr/bin/python3
-import sys, os, time, subprocess
+import sys, os, time, subprocess, signal
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import argononeoled as oled
+
+# The SSD1306 holds its last frame as long as it has power, so on shutdown or
+# service stop, blank the panel explicitly instead of leaving it frozen.
+def blank_and_exit(signum, frame):
+    try:
+        oled.oled_power(False)
+    finally:
+        sys.exit(0)
+
+signal.signal(signal.SIGTERM, blank_and_exit)
+signal.signal(signal.SIGINT, blank_and_exit)
 
 def get_temp():
     try:
